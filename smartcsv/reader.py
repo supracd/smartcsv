@@ -113,6 +113,14 @@ class CSVModelReader(object):
                     return False, {column['name']: 'Validation failed'}
         return True, {}
 
+
+    def _format_row(self, row):
+        for index, value in enumerate(row):
+            column = self.columns[index]
+            if 'format_function' in column:
+                row[index] = column.get('format_function')(value)
+        return row
+    
     validity_checks = [_is_valid_row_length, _is_valid_row_values]
 
     def validate_row(self, row):
@@ -127,6 +135,8 @@ class CSVModelReader(object):
             not csv_row or len(csv_row) == 0 or
             (len(csv_row) == 1 and not csv_row[0].strip())
         )
+
+
 
     def __next__(self):
         csv_row = next(self.reader)
@@ -152,12 +162,14 @@ class CSVModelReader(object):
                 self.errors['rows'][self.row_counter] = row_error
                 self.row_counter += 1
                 return next(self)
-
+        csv_row = self._format_row(csv_row)
         obj = {}
         for index, value in enumerate(csv_row):
-            value = value.strip() if self.strip_white_spaces else value
+            try:
+                value = value.strip() if self.strip_white_spaces else value
+            except AttributeError:
+                pass
             obj[self.model_fields[index]] = value
-
         self.row_counter += 1
         return obj
 
