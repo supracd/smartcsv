@@ -6,8 +6,6 @@
 
 smartcsv is a python utility to read and parse CSVs based on model definitions. Instead of just parsing the CSV into lists (like the builtin `csv` module) it adds the ability to specify models with attributes names. On top of that it adds nice features like **validation, custom parsing, failure control and nice error messages**.
 
-### Installation
-    pip install smartcsv
 
 ### Usage
 
@@ -106,6 +104,47 @@ reader = smartcsv.reader(f, columns=COLUMNS_1, fail_fast=False, skip_lines=3)
 for obj in reader:
     print(obj['title'])
 ```
+
+### Format Function Usage
+
+Assuming the following data and column specification
+
+    title,category,subcategory,currency,price,url,image_url
+    iPhone 5c blue,Phones,Smartphones,USD,399,http://apple.com/iphone,http://apple.com/iphone.jpg
+	
+```python
+COLUMNS_1 = [
+    {
+		'name': 'title', 
+		'required': True, 
+		'format_function': lambda title: title.upper()
+	},
+    {'name': 'category', 'required': True},
+    {'name': 'subcategory', 'required': False},
+    {
+        'name': 'currency',
+        'required': True,
+        'choices': CURRENCIES
+    },
+    {
+        'name': 'price',
+        'required': True,
+        'validator': is_number
+    },
+    {
+        'name': 'url',
+        'required': True,
+        'validator': lambda c: c.startswith('http')
+    },
+    {
+        'name': 'image_url',
+        'required': False,
+        'validator': lambda c: c.startswith('http')
+    },
+]
+```
+
+`row['title']` will be "IPHONE 5C BLUE"
 
 ### Contributing
 
